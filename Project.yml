@@ -1,0 +1,65 @@
+- hosts: docker_setup
+  vars:
+     url: "https://download.docker.com/linux/centos/7/x86_64/stable/"
+  tasks: 
+    - name: copying Files
+      copy:
+          src: /root/Downloads/epel-release-latest-8.noarch.rpm
+          dest: /root 
+    - name: Installing Epel packets
+      package:
+          name: epel-release-latest-8.noarch.rpm
+          state: present
+    - name: yum configuration for Docker
+      yum_repository:
+              name: docker
+              description: docker.repo
+              baseurl: "{{ url }}"
+              gpgcheck: no        
+    - name: Installing docker packages
+      package:
+          name: "docker-ce-18.09.1-3.el7.x86_64" 
+          state: present 
+    - name: Install Docker
+      command: pip3 install docker
+    - name: Create mount path for docker
+      file: 
+       path: /root/docker_mount
+       state: directory 
+    - name: Copy HTML file
+      copy: 
+         src: /root/HTML/firstpage.html 
+         dest: /root/docker_mount
+    - name: Restart docker service
+      service:
+             name: "docker"
+             state: restarted
+    - name: Changing  Settings Firewalld
+      firewalld:
+             service: https
+             permanent: yes
+             state: enabled
+    - name: Disabling firewalld
+      firewalld:
+             port: 8080/tcp
+             permanent: yes
+             state: disabled 
+    - name: Disabling Firewalld using command
+      command: systemctl stop firewalld
+    - name: Changing  Settings Firewalld again
+      firewalld:
+             service: https
+             permanent: yes
+             state: enabled
+    - name: creating container using HTTPD image
+      docker_container: 
+                  name: Webserver
+                  image: httpd
+                  state: started
+                  exposed_ports: 
+                                - "80"
+                  ports: 
+                                - "8080:80"
+                  volumes:     
+                                - /root/docker_mount/:/usr/local/apache2/htdocs/ 
+
