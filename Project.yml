@@ -30,27 +30,19 @@
       copy: 
          src: /root/HTML/firstpage.html 
          dest: /root/docker_mount
+ 
     - name: Restart docker service
       service:
              name: "docker"
              state: restarted
-    - name: Changing  Settings Firewalld
-      firewalld:
-             service: https
-             permanent: yes
-             state: enabled
+   
     - name: Disabling firewalld
       firewalld:
-             port: 8080/tcp
+             port: 80/tcp
              permanent: yes
              state: disabled 
-    - name: Disabling Firewalld using command
-      command: systemctl stop firewalld
-    - name: Changing  Settings Firewalld again
-      firewalld:
-             service: https
-             permanent: yes
-             state: enabled
+             immediate: yes
+     
     - name: creating container using HTTPD image
       docker_container: 
                   name: Webserver
